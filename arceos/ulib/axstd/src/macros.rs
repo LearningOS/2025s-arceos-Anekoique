@@ -21,3 +21,11 @@ macro_rules! println {
         $crate::io::__print_impl(format_args!("{}\n", format_args!($($arg)*)));
     }
 }
+
+#[macro_export]
+macro_rules! red_println {
+    () => { $crate::print!("\n") };
+    ($($arg:tt)*) => {
+        $crate::io::__print_impl(format_args!("\x1b[31m{}\x1b[0m\n", format_args!($($arg)*)));
+    }
+}
