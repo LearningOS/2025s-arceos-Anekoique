@@ -30,6 +30,11 @@ impl File {
             .downcast::<Self>()
             .map_err(|_| LinuxError::EINVAL)
     }
+
+    /// Get the inner node of the file.    
+    pub fn inner(&self) -> &Mutex<axfs::fops::File> {
+        &self.inner
+    }
 }
 
 impl FileLike for File {

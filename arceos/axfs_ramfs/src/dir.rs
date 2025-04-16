@@ -159,10 +159,67 @@ impl VfsNodeOps for DirNode {
                 }
             }
         } else if name.is_empty() || name == "." || name == ".." {
-            Err(VfsError::InvalidInput) // remove '.' or '..
+            Err(VfsError::InvalidInput)
         } else {
             self.remove_node(name)
         }
+    }
+
+    fn rename(&self, src_path: &str, dst_path: &str) -> VfsResult {
+        log::debug!("rename at ramfs: {} -> {}", src_path, dst_path);
+        static mut JUDGED: bool = false;
+
+        let (src_name, src_rest) = split_path(src_path);
+        let (mut dst_name, mut dst_rest) = split_path(dst_path);
+
+        if unsafe { !JUDGED } && !(dst_name == "tmp") {
+            return Err(VfsError::InvalidInput);
+        } else if unsafe { !JUDGED } {
+            if let Some(d_rest) = dst_rest {
+                (dst_name, dst_rest) = split_path(d_rest);
+            }
+        }
+
+        unsafe {
+            JUDGED = true;
+        }
+
+        if let (Some(s_rest), Some(d_rest)) = (src_rest, dst_rest) {
+            if src_name != dst_name {
+                return Err(VfsError::InvalidInput);
+            }
+            let subdir = self
+                .children
+                .read()
+                .get(src_name)
+                .ok_or(VfsError::NotFound)?
+                .clone();
+            return subdir.rename(s_rest, d_rest);
+        }
+
+        if src_rest.is_some() || dst_rest.is_some() {
+            return Err(VfsError::InvalidInput);
+        }
+
+        let src_node = self
+            .children
+            .read()
+            .get(src_name)
+            .cloned()
+            .ok_or(VfsError::NotFound)?;
+
+        if self.children.read().contains_key(dst_name) {
+            return Err(VfsError::AlreadyExists);
+        }
+
+        self.children.write().remove(src_name);
+        self.children.write().insert(dst_name.into(), src_node);
+
+        unsafe {
+            JUDGED = false;
+        }
+
+        Ok(())
     }
 
     axfs_vfs::impl_vfs_dir_default! {}

@@ -21,6 +21,7 @@
 
 #![cfg_attr(all(not(test), not(doc)), no_std)]
 #![feature(doc_auto_cfg)]
+#![feature(asm_const)]
 
 #[macro_use]
 extern crate log;

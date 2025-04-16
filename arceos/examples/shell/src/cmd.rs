@@ -27,6 +27,7 @@ const CMD_TABLE: &[(&str, CmdHandler)] = &[
     ("pwd", do_pwd),
     ("rm", do_rm),
     ("uname", do_uname),
+    ("mv", do_rename),
 ];
 
 fn file_type_to_char(ty: FileType) -> char {
@@ -176,6 +177,15 @@ fn do_echo(args: &str) {
     } else {
         println!("{}", args)
     }
+}
+
+fn do_rename(args: &str) {
+    let (src, dst) = split_whitespace(args);
+    if src.is_empty() || dst.is_empty() {
+        print_err!("mv", "missing operand");
+        return;
+    }
+    fs::rename(src, dst);
 }
 
 fn do_mkdir(args: &str) {

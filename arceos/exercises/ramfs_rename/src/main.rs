@@ -16,6 +16,11 @@ fn create_file(fname: &str, text: &str) -> io::Result<()> {
     file.write_all(text.as_bytes())
 }
 
+fn create_dir(dname: &str) -> io::Result<()> {
+    println!("Create '{}' ...", dname);
+    fs::create_dir(dname)
+}
+
 // Only support rename, NOT move.
 fn rename_file(src: &str, dst: &str) -> io::Result<()> {
     println!("Rename '{}' to '{}' ...", src, dst);
@@ -23,6 +28,7 @@ fn rename_file(src: &str, dst: &str) -> io::Result<()> {
 }
 
 fn print_file(fname: &str) -> io::Result<()> {
+    println!("Print '{}' content ...", fname);
     let mut buf = [0; 1024];
     let mut file = File::open(fname)?;
     loop {
@@ -38,11 +44,12 @@ fn print_file(fname: &str) -> io::Result<()> {
 }
 
 fn process() -> io::Result<()> {
-    create_file("/tmp/f1", "hello")?;
+    create_dir("/tmp/f1")?;
+    create_file("/tmp/f1/f2", "hello")?;
     // Just rename, NOT move.
     // So this must happen in the same directory.
-    rename_file("/tmp/f1", "/tmp/f2")?;
-    print_file("/tmp/f2")
+    rename_file("/tmp/f1/f2", "/tmp/f1/f3")?;
+    print_file("/tmp/f1/f3")
 }
 
 #[cfg_attr(feature = "axstd", no_mangle)]
